@@ -147,6 +147,7 @@ public class TestBitPackingColumn {
   @Test
   public void testSeven() throws IOException {
     int[] vals = { 0, 28, 34, 35, 63, 1, 125, 1, 1};
+    
     // 0000000, 0011100, 0100010, 0100011, 0111111, 0000001, 1111101, 0000001, 0000001
     String expected =
         "00000000 01110001 00010010 00110111 11100000 01111110 10000001 " +
