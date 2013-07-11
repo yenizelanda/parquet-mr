@@ -12,11 +12,9 @@ import static parquet.column.Encoding.RLE;
 
 public class DeltaValuesWriter extends ValuesWriter {
 
-
 	private CapacityByteArrayOutputStream cbaos;
 	private int lastNumber;
 	private boolean isFirst;
-	
 
 	public DeltaValuesWriter(int initialCapacity) {
 		cbaos = new CapacityByteArrayOutputStream(initialCapacity);
@@ -55,12 +53,13 @@ public class DeltaValuesWriter extends ValuesWriter {
 	}
 
 	private int zigzagEncode(int v) {
-		if (v>0)
-			return 2*v-1;
+		if (v > 0)
+			return 2 * v - 1;
 		else
-			return -2*v;
+			return -2 * v;
 	}
-	
+
+	@Override
 	public void writeInteger(int v) {
 		if (isFirst) {
 			isFirst = false;
@@ -71,11 +70,12 @@ public class DeltaValuesWriter extends ValuesWriter {
 			}
 		} else
 			try {
-				BytesUtils.writeIntLittleEndian(cbaos, zigzagEncode(v-lastNumber));
+				BytesUtils.writeIntLittleEndian(cbaos, zigzagEncode(v
+						- lastNumber));
 			} catch (IOException e) {
 				throw new ParquetDecodingException("could not write int", e);
 			}
-		
-		lastNumber=v;
+
+		lastNumber = v;
 	}
 }
