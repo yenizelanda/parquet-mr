@@ -23,22 +23,57 @@ import org.junit.Test;
 
 import parquet.bytes.BytesInput;
 
-public class TestDelta {
+public class TestDeltaHybrid {
 
 	@Test
 	public void TestCloseIntValues() throws IOException {
 		
 		int[] ints = {1000, 998, 996, 990, 995, 1002, 1004, 999, 997};
+
 		
-		DeltaValuesWriter dvw = new DeltaValuesWriter(40);
+		control(ints);
+		
+	}
+	
+	@Test
+	public void TestRandomCloseIntValues() throws IOException {
+		int[] ints = new int[9645];
+		
+		int range = 5;
+		
+		ints[0] = 2483265;
+		
+		for (int i = 1; i < ints.length; i++)
+			ints[i] = ints[i-1] + (((int) (Math.random()*(2*range+1)))-range);
+		
+		control(ints);
+	}
+	
+	@Test
+	public void TestLargeVariations() throws IOException {
+		int[] ints = new int[30];
+		
+		for (int i = 0; i < ints.length; i++) {
+			if (i%2==0)
+				ints[i] = Integer.MAX_VALUE - ((int) (1000 * Math.random()));
+			else
+				ints[i] = ((int) (1000 * Math.random()));
+		}
+		
+		control(ints);
+	}
+	
+	private void control(int[] ints) throws IOException {
+		
+		DeltaHybridValuesWriter dvw = new DeltaHybridValuesWriter(50);
 		
 		for (int i : ints) {
 			dvw.writeInteger(i);
 		}
 		
 		BytesInput bi = dvw.getBytes();
-		
-		DeltaValuesReader dvr = new DeltaValuesReader();
+
+		DeltaHybridValuesReader dvr = new DeltaHybridValuesReader();
 		
 		dvr.initFromPage(ints.length, bi.toByteArray(), 0);
 		
@@ -49,6 +84,6 @@ public class TestDelta {
 	      got += " " + dvr.readInteger();
 	    }
 	    assertEquals(expected, got);
-		
+		System.out.println("compression ratio: " + 0.25 * dvw.getBufferedSize() / ints.length);
 	}
 }
