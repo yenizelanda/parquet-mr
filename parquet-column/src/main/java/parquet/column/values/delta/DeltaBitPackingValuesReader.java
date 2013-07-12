@@ -165,7 +165,6 @@ public class DeltaBitPackingValuesReader extends ValuesReader {
 
 			// decrement to know how many values are remaining
 			valueCount -= bufferSize;
-			;
 		}
 
 		return offset;
