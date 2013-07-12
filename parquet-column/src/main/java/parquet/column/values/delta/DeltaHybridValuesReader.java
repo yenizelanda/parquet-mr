@@ -4,19 +4,13 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import parquet.Ints;
-import parquet.Preconditions;
 import parquet.bytes.BytesUtils;
 import parquet.column.values.ValuesReader;
 import parquet.column.values.rle.RunLengthBitPackingHybridDecoder;
 import parquet.io.ParquetDecodingException;
 
-/**
- * This ValuesReader does all the reading in {@link #initFromPage} and stores
- * the values in an in memory buffer, which is less than ideal.
- * 
- * @author Alex Levenson
- */
 public class DeltaHybridValuesReader extends ValuesReader {
+
 	private final int bitWidth;
 	private RunLengthBitPackingHybridDecoder decoder;
 	private boolean isFirst;
@@ -27,14 +21,7 @@ public class DeltaHybridValuesReader extends ValuesReader {
 		this.bitWidth = 32;
 		isFirst = true;
 	}
-	
-	private int zigzagDecode(int v) {
-		if (v % 2 == 1) {
-			return v / 2 + 1;
-		} else
-			return -v / 2;
-	}
-	
+
 	@Override
 	public int initFromPage(long valueCountL, byte[] page, int offset)
 			throws IOException {
@@ -72,13 +59,20 @@ public class DeltaHybridValuesReader extends ValuesReader {
 			return nextNumber;
 		} else {
 			try {
-				nextNumber = lastNumber
-						+ zigzagDecode(decoder.readInt());
+				nextNumber = lastNumber + zigzagDecode(decoder.readInt());
 			} catch (IOException e) {
 				throw new ParquetDecodingException("could not read int", e);
 			}
 			lastNumber = nextNumber;
 			return nextNumber;
+		}
+	}
+
+	private int zigzagDecode(int v) {
+		if (v % 2 == 1) {
+			return v / 2 + 1;
+		} else {
+			return -v / 2;
 		}
 	}
 }

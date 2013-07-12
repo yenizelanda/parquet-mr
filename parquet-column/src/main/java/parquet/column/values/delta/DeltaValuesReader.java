@@ -27,13 +27,6 @@ public class DeltaValuesReader extends ValuesReader {
 		return offset + 4 * ((int) valueCount);
 	}
 
-	private int zigzagDecode(int v) {
-		if (v % 2 == 1) {
-			return v / 2 + 1;
-		} else
-			return -v / 2;
-	}
-
 	@Override
 	public int readInteger() {
 
@@ -60,6 +53,14 @@ public class DeltaValuesReader extends ValuesReader {
 			return nextNumber;
 		}
 
+	}
+
+	private int zigzagDecode(int v) {
+		if (v % 2 == 1) {
+			return v / 2 + 1;
+		} else {
+			return -v / 2;
+		}
 	}
 
 }

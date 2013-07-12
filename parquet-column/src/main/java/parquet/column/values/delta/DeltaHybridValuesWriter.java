@@ -9,62 +9,28 @@ import parquet.bytes.BytesUtils;
 import parquet.column.Encoding;
 import parquet.column.values.ValuesWriter;
 import parquet.column.values.rle.RunLengthBitPackingHybridEncoder;
-import parquet.io.ParquetDecodingException;
 import parquet.io.ParquetEncodingException;
 
-/**
- * @author Alex Levenson
- */
 public class DeltaHybridValuesWriter extends ValuesWriter {
 	private final RunLengthBitPackingHybridEncoder encoder;
 	private final ByteArrayOutputStream length;
 	private int lastNumber;
 	private boolean isFirst;
 
-	public DeltaHybridValuesWriter(
-			int initialCapacity) {
-		this.encoder = new RunLengthBitPackingHybridEncoder(32,
-				initialCapacity);
+	public DeltaHybridValuesWriter(int initialCapacity) {
+		this.encoder = new RunLengthBitPackingHybridEncoder(32, initialCapacity);
 		this.length = new ByteArrayOutputStream(4);
 		isFirst = true;
-	}
-
-	private int zigzagEncode(int v) {
-		if (v > 0)
-			return 2 * v - 1;
-		else
-			return -2 * v;
-	}
-
-	@Override
-	public void writeInteger(int v) {
-		if (isFirst) {
-			isFirst = false;
-			try {
-				encoder.writeInt(v);
-			} catch (IOException e) {
-				throw new ParquetEncodingException("could not write int", e);
-			}
-		} else
-			try {
-				encoder.writeInt(zigzagEncode(v
-						- lastNumber));
-			} catch (IOException e) {
-				throw new ParquetEncodingException("could not write int", e);
-			}
-
-		lastNumber = v;
-	}
-	
-
-	@Override
-	public long getBufferedSize() {
-		return encoder.getBufferedSize();
 	}
 
 	@Override
 	public long getAllocatedSize() {
 		return encoder.getAllocatedSize();
+	}
+
+	@Override
+	public long getBufferedSize() {
+		return encoder.getBufferedSize();
 	}
 
 	@Override
@@ -83,7 +49,13 @@ public class DeltaHybridValuesWriter extends ValuesWriter {
 
 	@Override
 	public Encoding getEncoding() {
-		return Encoding.RLE;
+		return Encoding.DELTA;
+	}
+
+	@Override
+	public String memUsageString(String prefix) {
+		return String.format("%s RunLengthBitPackingHybrid %d bytes", prefix,
+				getAllocatedSize());
 	}
 
 	@Override
@@ -94,8 +66,30 @@ public class DeltaHybridValuesWriter extends ValuesWriter {
 	}
 
 	@Override
-	public String memUsageString(String prefix) {
-		return String.format("%s RunLengthBitPackingHybrid %d bytes", prefix,
-				getAllocatedSize());
+	public void writeInteger(int v) {
+		if (isFirst) {
+			isFirst = false;
+			try {
+				encoder.writeInt(v);
+			} catch (IOException e) {
+				throw new ParquetEncodingException("could not write int", e);
+			}
+		} else {
+			try {
+				encoder.writeInt(zigzagEncode(v - lastNumber));
+			} catch (IOException e) {
+				throw new ParquetEncodingException("could not write int", e);
+			}
+		}
+
+		lastNumber = v;
+	}
+
+	private int zigzagEncode(int v) {
+		if (v > 0) {
+			return 2 * v - 1;
+		} else {
+			return -2 * v;
+		}
 	}
 }

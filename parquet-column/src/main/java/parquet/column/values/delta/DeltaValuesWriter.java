@@ -8,17 +8,21 @@ import parquet.bytes.CapacityByteArrayOutputStream;
 import parquet.column.Encoding;
 import parquet.column.values.ValuesWriter;
 import parquet.io.ParquetDecodingException;
-import static parquet.column.Encoding.RLE;
 
 public class DeltaValuesWriter extends ValuesWriter {
 
-	private CapacityByteArrayOutputStream cbaos;
+	private final CapacityByteArrayOutputStream cbaos;
 	private int lastNumber;
 	private boolean isFirst;
 
 	public DeltaValuesWriter(int initialCapacity) {
 		cbaos = new CapacityByteArrayOutputStream(initialCapacity);
 		isFirst = true;
+	}
+
+	@Override
+	public long getAllocatedSize() {
+		return cbaos.getCapacity();
 	}
 
 	@Override
@@ -33,18 +37,7 @@ public class DeltaValuesWriter extends ValuesWriter {
 
 	@Override
 	public Encoding getEncoding() {
-		return RLE;
-	}
-
-	@Override
-	public void reset() {
-		cbaos.reset();
-		isFirst = true;
-	}
-
-	@Override
-	public long getAllocatedSize() {
-		return cbaos.getCapacity();
+		return Encoding.DELTA;
 	}
 
 	@Override
@@ -52,11 +45,10 @@ public class DeltaValuesWriter extends ValuesWriter {
 		return cbaos.memUsageString(prefix);
 	}
 
-	private int zigzagEncode(int v) {
-		if (v > 0)
-			return 2 * v - 1;
-		else
-			return -2 * v;
+	@Override
+	public void reset() {
+		cbaos.reset();
+		isFirst = true;
 	}
 
 	@Override
@@ -68,14 +60,23 @@ public class DeltaValuesWriter extends ValuesWriter {
 			} catch (IOException e) {
 				throw new ParquetDecodingException("could not write int", e);
 			}
-		} else
+		} else {
 			try {
 				BytesUtils.writeIntLittleEndian(cbaos, zigzagEncode(v
 						- lastNumber));
 			} catch (IOException e) {
 				throw new ParquetDecodingException("could not write int", e);
 			}
+		}
 
 		lastNumber = v;
+	}
+
+	private int zigzagEncode(int v) {
+		if (v > 0) {
+			return 2 * v - 1;
+		} else {
+			return -2 * v;
+		}
 	}
 }

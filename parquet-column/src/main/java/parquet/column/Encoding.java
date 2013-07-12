@@ -23,6 +23,7 @@ import parquet.column.values.ValuesReader;
 import parquet.column.values.ValuesType;
 import parquet.column.values.bitpacking.ByteBitPackingValuesReader;
 import parquet.column.values.boundedint.ZeroIntegerValuesReader;
+import parquet.column.values.delta.DeltaHybridValuesReader;
 import parquet.column.values.dictionary.DictionaryValuesReader;
 import parquet.column.values.dictionary.PlainBinaryDictionary;
 import parquet.column.values.plain.BinaryPlainValuesReader;
@@ -34,7 +35,6 @@ import parquet.column.values.plain.PlainValuesReader.LongPlainValuesReader;
 import parquet.column.values.rle.RunLengthBitPackingHybridValuesReader;
 import parquet.io.ParquetDecodingException;
 import parquet.schema.PrimitiveType.PrimitiveTypeName;
-
 import static parquet.column.values.bitpacking.Packer.BIG_ENDIAN;
 
 /**
@@ -80,6 +80,14 @@ public enum Encoding {
       }
       return new RunLengthBitPackingHybridValuesReader(bitWidth);
     }
+  },
+
+  DELTA {
+	@Override
+	public ValuesReader getValuesReader(ColumnDescriptor descriptor,
+			ValuesType valuesType) {
+		return new DeltaHybridValuesReader();
+	}
   },
 
   /**
