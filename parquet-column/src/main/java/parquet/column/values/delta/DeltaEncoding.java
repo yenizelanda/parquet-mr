@@ -15,16 +15,47 @@
  */
 package parquet.column.values.delta;
 
+/**
+ * The helper library for delta encoding classes.
+ * 
+ * @author Baris Kaya
+ * 
+ */
 public class DeltaEncoding {
 
-	public static int zigzagEncode(int v)
-	{
+	/**
+	 * The function which encodes the difference between two numbers to a single
+	 * positive integer.
+	 * 
+	 * @param v
+	 *            the difference between the two integers
+	 * @return the encoded number
+	 */
+	public static int zigzagEncode(int v) {
 		return (v << 1) ^ (v >> 31);
 	}
-	public static int zigzagDecode(int v)
-	{
+
+	/**
+	 * The function which decodes the difference between two numbers back to its
+	 * original states.
+	 * 
+	 * @param v
+	 *            the encoded number
+	 * @return the difference between two integers
+	 */
+	public static int zigzagDecode(int v) {
 		return (v >>> 1) ^ (-(v & 1));
 	}
+
+	/**
+	 * The function which encodes the difference between two numbers to a single
+	 * positive integer.
+	 * 
+	 * @param v
+	 *            the difference between the two integers
+	 * @return the encoded number
+	 * @deprecated
+	 */
 	public static int zigzagDecodeOld(int v) {
 		if (v % 2 == 1) {
 			return v / 2 + 1;
@@ -32,6 +63,16 @@ public class DeltaEncoding {
 			return -v / 2;
 		}
 	}
+
+	/**
+	 * The function which decodes the difference between two numbers back to its
+	 * original states.
+	 * 
+	 * @param v
+	 *            the encoded number
+	 * @return the difference between two integers
+	 * @deprecated
+	 */
 	public static int zigzagEncodeOld(int v) {
 		if (v > 0) {
 			return 2 * v - 1;

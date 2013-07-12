@@ -25,6 +25,8 @@ import parquet.column.values.bitpacking.ByteBitPackingLE;
 import parquet.column.values.bitpacking.BytePacker;
 
 /**
+ * This class uses delta encoding combined with bit packing to
+ * increase the performance of the encoding process.
  * 
  * @author Baris Kaya
  *
@@ -120,6 +122,7 @@ public class DeltaBitPackingValuesWriter extends ValuesWriter {
 		this.mode = mode;
 
 		if (mode == MODE.PACK_32) {
+			cbaos.write(1);
 			// buffer up to BUFFER_SIZE_PACK_32 integers
 			buffer = new int[BUFFER_SIZE_PACK_32];
 
@@ -128,6 +131,7 @@ public class DeltaBitPackingValuesWriter extends ValuesWriter {
 		    if (DEBUG) LOG.debug("initializing the writer with PACK_32 mode");
 		}
 		else {
+			cbaos.write(0);
 			// buffer up to BUFFER_SIZE_PACK_8 integers
 			buffer = new int[BUFFER_SIZE_PACK_8];
 
@@ -240,14 +244,14 @@ public class DeltaBitPackingValuesWriter extends ValuesWriter {
 			// this is the first number, so store it without encoding it
 			isFirst = false;
 			buffer[bufferOffset++] = v;
-		    if (DEBUG) LOG.debug("reading an integer from the page");
+		    if (DEBUG) LOG.debug("writing an integer to the buffer");
 		} else {
 			// compute the delta, and zigzag encode it
 			int delta = DeltaEncoding.zigzagEncode(v - lastNumber);
 
 			// store and increment offset
 			buffer[bufferOffset++] = delta;
-		    if (DEBUG) LOG.debug("reading an integer from the page");
+		    if (DEBUG) LOG.debug("writing an integer to the buffer");
 
 		}
 		// update the bit tally
@@ -259,6 +263,5 @@ public class DeltaBitPackingValuesWriter extends ValuesWriter {
 		}
 		lastNumber = v;
 	}
-
 
 }

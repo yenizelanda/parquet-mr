@@ -28,73 +28,72 @@ public class TestDeltaBitPacking {
 
 	@Test
 	public void TestCloseIntValues() throws IOException {
-		
-		int[] ints = {1000, 998, 996, 990, 995, 1002, 1004, 999, 997};
+
+		int[] ints = { 1000, 998, 996, 990, 995, 1002, 1004, 999, 997 };
 
 		for (int i = -10; i <= 10; i++)
 			System.out.println(i + " " + DeltaEncoding.zigzagEncode(i));
 
 		for (int i = -10; i <= 10; i++)
 			System.out.println(i + " " + DeltaEncoding.zigzagDecode(i));
-		
+
 		control(ints);
-		
+
 	}
-	
+
 	@Test
 	public void TestRandomCloseIntValues() throws IOException {
 		int[] ints = new int[9645];
-		
+
 		int range = 5;
-		
+
 		ints[0] = 2483265;
-		
+
 		for (int i = 1; i < ints.length; i++)
-			ints[i] = ints[i-1] + (((int) (Math.random()*(2*range+1)))-range);
-		
+			ints[i] = ints[i - 1]
+					+ (((int) (Math.random() * (2 * range + 1))) - range);
+
 		control(ints);
 	}
-	
+
 	@Test
 	public void TestLargeVariations() throws IOException {
 		int[] ints = new int[30];
-		
+
 		for (int i = 0; i < ints.length; i++) {
-			if (i%2==0)
+			if (i % 2 == 0)
 				ints[i] = Integer.MAX_VALUE - ((int) (1000 * Math.random()));
 			else
 				ints[i] = ((int) (1000 * Math.random()));
 		}
-		
+
 		control(ints);
 	}
-	
-	
+
 	private void control(int[] ints) throws IOException {
-		
-		MODE mode = MODE.PACK_32;
-		
-		DeltaBitPackingValuesWriter dvw = new DeltaBitPackingValuesWriter(50,mode);
-		
+
+		MODE mode = MODE.PACK_8;
+
+		DeltaBitPackingValuesWriter dvw = new DeltaBitPackingValuesWriter(50,
+				mode);
+
 		for (int i : ints) {
 			dvw.writeInteger(i);
 		}
-		
+
 		BytesInput bi = dvw.getBytes();
 
-		DeltaBitPackingValuesReader dvr = new DeltaBitPackingValuesReader(mode);
-		
+		DeltaBitPackingValuesReader dvr = new DeltaBitPackingValuesReader();
+
 		dvr.initFromPage(ints.length, bi.toByteArray(), 0);
-		
-	    String expected = "";
-	    String got = "";
-	    for (int i : ints) {
-	      expected += " " + i;
-	      got += " " + dvr.readInteger();
-	    }
-	    
-	    assertEquals(expected, got);
-		System.out.println("compression ratio: " + 0.25 * dvw.getBufferedSize() / ints.length);
-		
+
+		String expected = "";
+		String got = "";
+		for (int i : ints) {
+			expected += " " + i;
+			got += " " + dvr.readInteger();
+		}
+
+		assertEquals(expected, got);
 	}
 }
