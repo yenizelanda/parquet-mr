@@ -18,7 +18,7 @@ public class DeltaHybridValuesReader extends ValuesReader {
 	private int nextNumber;
 
 	public DeltaHybridValuesReader() {
-		this.bitWidth = 32;
+		bitWidth = 32;
 		isFirst = true;
 	}
 

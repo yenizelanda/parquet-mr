@@ -12,14 +12,15 @@ import parquet.column.values.rle.RunLengthBitPackingHybridEncoder;
 import parquet.io.ParquetEncodingException;
 
 public class DeltaHybridValuesWriter extends ValuesWriter {
+
 	private final RunLengthBitPackingHybridEncoder encoder;
 	private final ByteArrayOutputStream length;
 	private int lastNumber;
 	private boolean isFirst;
 
 	public DeltaHybridValuesWriter(int initialCapacity) {
-		this.encoder = new RunLengthBitPackingHybridEncoder(32, initialCapacity);
-		this.length = new ByteArrayOutputStream(4);
+		encoder = new RunLengthBitPackingHybridEncoder(32, initialCapacity);
+		length = new ByteArrayOutputStream(4);
 		isFirst = true;
 	}
 

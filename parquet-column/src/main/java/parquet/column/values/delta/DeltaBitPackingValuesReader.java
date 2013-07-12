@@ -11,7 +11,7 @@ public class DeltaBitPackingValuesReader extends ValuesReader {
 	private boolean isFirst;
 	private int lastNumber;
 	private int nextNumber;
-	private byte[] b;
+	private byte[] currentPage;
 	private int currentOffset;
 	private final int[] buffer;
 	private int bufferOffset;
@@ -23,11 +23,11 @@ public class DeltaBitPackingValuesReader extends ValuesReader {
 	}
 
 	private void flushToBuffer() {
-		maxBits = b[currentOffset++];
+		maxBits = currentPage[currentOffset++];
 
 		packer = ByteBitPackingLE.getPacker(maxBits);
 
-		packer.unpack32Values(b, currentOffset, buffer, 0);
+		packer.unpack32Values(currentPage, currentOffset, buffer, 0);
 
 		currentOffset += 4 * maxBits;
 
@@ -37,7 +37,7 @@ public class DeltaBitPackingValuesReader extends ValuesReader {
 	@Override
 	public int initFromPage(long valueCount, byte[] page, int offset)
 			throws IOException {
-		b = page;
+		currentPage = page;
 		currentOffset = offset;
 		isFirst = true;
 		bufferOffset = 32;
