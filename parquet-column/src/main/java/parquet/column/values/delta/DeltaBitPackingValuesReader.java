@@ -31,13 +31,12 @@ public class DeltaBitPackingValuesReader extends ValuesReader {
 		currentOffset = offset;
 		isFirst = true;
 		bufferOffset = 32;
-		while (valueCount > 0)
-		{
+		while (valueCount > 0) {
 			offset += 1 + 4 * page[offset];
 			valueCount -= 32;
 		}
-			
-		return 0;
+
+		return offset;
 	}
 
 	private int zigzagDecode(int v) {
@@ -47,25 +46,24 @@ public class DeltaBitPackingValuesReader extends ValuesReader {
 			return -v / 2;
 	}
 
-	private void flushToBuffer()
-	{
+	private void flushToBuffer() {
 		maxBits = b[currentOffset++];
 
 		packer = ByteBitPackingLE.getPacker(maxBits);
-		
+
 		packer.unpack32Values(b, currentOffset, buffer, 0);
-		
+
 		currentOffset += 4 * maxBits;
-		
+
 		bufferOffset = 0;
 	}
-	
+
 	@Override
 	public int readInteger() {
 
 		if (bufferOffset == 32)
 			flushToBuffer();
-		
+
 		if (isFirst) {
 			nextNumber = buffer[bufferOffset++];
 			lastNumber = nextNumber;

@@ -23,6 +23,7 @@ public class DeltaValuesReader extends ValuesReader {
 			throws IOException {
 		b = page;
 		currentOffset = offset;
+		isFirst = true;
 		return offset + 4 * ((int) valueCount);
 	}
 

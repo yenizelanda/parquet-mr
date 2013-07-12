@@ -1,7 +1,5 @@
 package parquet.column.values.delta;
 
-
-
 import parquet.bytes.BytesInput;
 import parquet.bytes.CapacityByteArrayOutputStream;
 import parquet.column.Encoding;
@@ -33,7 +31,11 @@ public class DeltaBitPackingValuesWriter extends ValuesWriter {
 
 	@Override
 	public long getBufferedSize() {
-		return cbaos.size() + 1 + 4 * (32 - Integer.numberOfLeadingZeros(byteCap));
+		if (bufferOffset == 0)
+			return cbaos.size();
+		else
+			return cbaos.size() + 1 + 4
+					* (32 - Integer.numberOfLeadingZeros(byteCap));
 	}
 
 	@Override
@@ -54,7 +56,7 @@ public class DeltaBitPackingValuesWriter extends ValuesWriter {
 		isFirst = true;
 		bufferOffset = 0;
 		byteCap = 0;
-		
+
 	}
 
 	@Override
@@ -74,23 +76,22 @@ public class DeltaBitPackingValuesWriter extends ValuesWriter {
 			return -2 * v;
 	}
 
-	private void flushBuffer()
-	{
-		
+	private void flushBuffer() {
+
 		maxBits = (byte) (32 - Integer.numberOfLeadingZeros(byteCap));
-		
+
 		cbaos.write(maxBits);
 
 		packer = ByteBitPackingLE.getPacker(maxBits);
-		
+
 		packer.pack32Values(buffer, 0, temp, 0);
-		
+
 		cbaos.write(temp, 0, 4 * maxBits);
-		
+
 		bufferOffset = 0;
 		byteCap = 0;
 	}
-	
+
 	@Override
 	public void writeInteger(int v) {
 		if (isFirst) {
@@ -100,7 +101,7 @@ public class DeltaBitPackingValuesWriter extends ValuesWriter {
 			buffer[bufferOffset++] = zigzagEncode(v - lastNumber);
 
 		byteCap = byteCap | buffer[bufferOffset - 1];
-		
+
 		if (bufferOffset == 32)
 			flushBuffer();
 		lastNumber = v;
