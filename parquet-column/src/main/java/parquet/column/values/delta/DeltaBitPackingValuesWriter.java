@@ -25,95 +25,107 @@ import parquet.column.values.bitpacking.ByteBitPackingLE;
 import parquet.column.values.bitpacking.BytePacker;
 
 /**
- * This class uses delta encoding combined with bit packing to
- * increase the performance of the encoding process.
+ * This class uses delta encoding combined with bit packing to increase the
+ * performance of the encoding process.
  * 
  * @author Baris Kaya
- *
+ * 
  */
 public class DeltaBitPackingValuesWriter extends ValuesWriter {
 
-	private static final Log LOG = Log.getLog(DeltaBitPackingValuesWriter.class);
-	
-	/**
-	 * Buffer size if we choose to pack 32 integers at a time.
-	 */
-	private static final int BUFFER_SIZE_PACK_32 = 32;
-	
-	/**
-	 * Buffer size if we choose to pack 8 integers at a time.
-	 */
-	private static final int BUFFER_SIZE_PACK_8 = 8;
-	
+	private static final Log LOG = Log
+			.getLog(DeltaBitPackingValuesWriter.class);
+
 	/**
 	 * Variable to store the size of the buffer.
 	 */
 	private static int bufferSize;
 
 	/**
-	 * Output Stream which stores the encoded data and turns it into a 
-	 * byte array at the end.
+	 * Output Stream which stores the encoded data and turns it into a byte
+	 * array at the end.
 	 */
 	private final CapacityByteArrayOutputStream cbaos;
-	
+
 	/**
 	 * The buffer of currently un-encoded values.
 	 */
 	private final int[] buffer;
-	
+
 	/**
 	 * The position to write into the buffer.
 	 */
 	private int bufferOffset;
-	
+
 	/**
 	 * The running tally of the values currently stored in buffer.
 	 */
 	private int bitTally;
-	
+
 	/**
 	 * The last number that was read. This value is necessary to delta encode
 	 * the integers.
 	 */
 	private int lastNumber;
-	
+
 	/**
 	 * True if the currently read integer is the first one.
 	 */
 	private boolean isFirst;
-	
+
 	/**
 	 * The BytePacker which encodes the buffer before it is stored to baos.
 	 */
 	private BytePacker packer;
-	
+
 	/**
-	 * temporary buffer where the encoded values are stored before they are 
+	 * temporary buffer where the encoded values are stored before they are
 	 * written onto baos.
 	 */
 	private final byte[] temp;
-	
+
 	/**
 	 * Holds the current mode of the writer.
 	 */
 	private MODE mode;
-	
+
 	/**
-	 * The enum for modes, helps to tell the writer if values are packed 8 at a 
+	 * The enum for modes, helps to tell the writer if values are packed 8 at a
 	 * time or 32 at a time.
+	 * 
 	 * @author Baris Kaya
-	 *
+	 * 
 	 */
 	public enum MODE {
 
 		/**
 		 * Values are being packed 8 at a time.
 		 */
-		PACK_8,
+		PACK_8 {
+			public int getOutputSizeMultiplier() {
+				return 1;
+			}
+
+			public int getBufferSize() {
+				return 8;
+			}
+		},
 		/**
 		 * Values are being packed 32 at a time.
 		 */
-		PACK_32
+		PACK_32 {
+			public int getOutputSizeMultiplier() {
+				return 4;
+			}
+
+			public int getBufferSize() {
+				return 32;
+			}
+		};
+
+		public abstract int getOutputSizeMultiplier();
+
+		public abstract int getBufferSize();
 	}
 
 	public DeltaBitPackingValuesWriter(int initialCapacity, MODE mode) {
@@ -123,26 +135,24 @@ public class DeltaBitPackingValuesWriter extends ValuesWriter {
 
 		if (mode == MODE.PACK_32) {
 			cbaos.write(1);
-			// buffer up to BUFFER_SIZE_PACK_32 integers
-			buffer = new int[BUFFER_SIZE_PACK_32];
-
-			// make sure temp has enough slots to store the temporary encoded values
-			temp = new byte[Integer.SIZE * 4];
-		    if (DEBUG) LOG.debug("initializing the writer with PACK_32 mode");
-		}
-		else {
+			if (DEBUG)
+				LOG.debug("initializing the writer with PACK_32 mode");
+		} else {
 			cbaos.write(0);
-			// buffer up to BUFFER_SIZE_PACK_8 integers
-			buffer = new int[BUFFER_SIZE_PACK_8];
-
-			// make sure temp has enough slots to store the temporary encoded values
-			temp = new byte[Integer.SIZE];
-		    if (DEBUG) LOG.debug("initializing the writer with PACK_8 mode");
+			if (DEBUG)
+				LOG.debug("initializing the writer with PACK_8 mode");
 		}
-		
+
+		// create a buffer big enough to store values until they get packed
+		buffer = new int[mode.getBufferSize()];
+
+		// make sure temp has enough slots to store the temporary encoded
+		// values
+		temp = new byte[Integer.SIZE * mode.getOutputSizeMultiplier()];
+
 		// establish buffer size
 		bufferSize = buffer.length;
-		
+
 		// current position within the buffer
 		bufferOffset = 0;
 
@@ -153,7 +163,6 @@ public class DeltaBitPackingValuesWriter extends ValuesWriter {
 	private void flushBuffer() {
 		// determine how many bits are necessary to encode
 		int maxBits = Integer.SIZE - Integer.numberOfLeadingZeros(bitTally);
-		
 
 		// record down the max bit
 		cbaos.write((byte) maxBits);
@@ -162,27 +171,19 @@ public class DeltaBitPackingValuesWriter extends ValuesWriter {
 		packer = ByteBitPackingLE.getPacker(maxBits);
 
 		if (mode == MODE.PACK_32) {
-		    if (DEBUG) LOG.debug("packing 32 values at once");
+			if (DEBUG)
+				LOG.debug("packing 32 values at once");
 			// pack the buffer into the temp byte array, 32 at a time
 			packer.pack32Values(buffer, 0, temp, 0);
-	
-			// write out the compressed data
-			// the packer uses 32 * maxBits bits to store the data, and that
-			// corresponds to 4 * maxBits bytes
-			cbaos.write(temp, 0, 4 * maxBits);
-		}
-		else {
-		    if (DEBUG) LOG.debug("packing 8 values at once");
+		} else {
+			if (DEBUG)
+				LOG.debug("packing 8 values at once");
 			// pack the buffer into the temp byte array, 8 at a time
 			packer.pack8Values(buffer, 0, temp, 0);
-	
-			// write out the compressed data
-			// the packer uses 8 * maxBits bits to store the data, and that
-			// corresponds to maxBits bytes
-			cbaos.write(temp, 0, maxBits);
-			
 		}
 
+		// write out the compressed data using necessary amount of bytes
+		cbaos.write(temp, 0, mode.getOutputSizeMultiplier() * maxBits);
 		// reset the offset and the bit tally
 		bufferOffset = 0;
 		bitTally = 0;
@@ -201,8 +202,9 @@ public class DeltaBitPackingValuesWriter extends ValuesWriter {
 		} else {
 			// try to account for the buffered data, one byte is used to store
 			// the bit size
-			int maxBits = (byte) (Integer.SIZE - Integer.numberOfLeadingZeros(bitTally));
-			int packedSize = 4 * maxBits;
+			int maxBits = (byte) (Integer.SIZE - Integer
+					.numberOfLeadingZeros(bitTally));
+			int packedSize = mode.getOutputSizeMultiplier() * maxBits;
 			return cbaos.size() + 1 + packedSize;
 		}
 	}
@@ -214,8 +216,8 @@ public class DeltaBitPackingValuesWriter extends ValuesWriter {
 			// if it isn't full yet
 			flushBuffer();
 		}
-		
-		//turn the encoded data into a BytesInput object
+
+		// turn the encoded data into a BytesInput object
 		return BytesInput.from(cbaos);
 	}
 
@@ -244,18 +246,20 @@ public class DeltaBitPackingValuesWriter extends ValuesWriter {
 			// this is the first number, so store it without encoding it
 			isFirst = false;
 			buffer[bufferOffset++] = v;
-		    if (DEBUG) LOG.debug("writing an integer to the buffer");
+			if (DEBUG)
+				LOG.debug("writing an integer to the buffer");
 		} else {
 			// compute the delta, and zigzag encode it
-			int delta = DeltaEncoding.zigzagEncode(v - lastNumber);
+			int delta = Zigzag.encode(v - lastNumber);
 
 			// store and increment offset
 			buffer[bufferOffset++] = delta;
-		    if (DEBUG) LOG.debug("writing an integer to the buffer");
+			if (DEBUG)
+				LOG.debug("writing an integer to the buffer");
 
 		}
 		// update the bit tally
-		bitTally = bitTally | buffer[bufferOffset-1];
+		bitTally = bitTally | buffer[bufferOffset - 1];
 
 		if (bufferOffset == bufferSize) {
 			// buffer is full, flush

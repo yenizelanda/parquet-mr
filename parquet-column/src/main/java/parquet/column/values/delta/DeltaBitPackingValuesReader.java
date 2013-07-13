@@ -38,16 +38,6 @@ public class DeltaBitPackingValuesReader extends ValuesReader {
 			.getLog(DeltaBitPackingValuesReader.class);
 
 	/**
-	 * Buffer size if we choose to pack 32 integers at a time.
-	 */
-	private static final int BUFFER_SIZE_PACK_32 = 32;
-
-	/**
-	 * Buffer size if we choose to pack 8 integers at a time.
-	 */
-	private static final int BUFFER_SIZE_PACK_8 = 8;
-
-	/**
 	 * Variable to store the size of the buffer.
 	 */
 	private static int bufferSize;
@@ -114,16 +104,14 @@ public class DeltaBitPackingValuesReader extends ValuesReader {
 				LOG.debug("unpacking 32 values at once");
 			// decode 32 values at once, writing it on buffer.
 			packer.unpack32Values(currentPage, currentOffset, buffer, 0);
-
-			currentOffset += 4 * maxBits;
 		} else {
 			if (DEBUG)
 				LOG.debug("unpacking 8 values at once");
 			// decode 8 values at once, writing it on buffer.
 			packer.unpack8Values(currentPage, currentOffset, buffer, 0);
-
-			currentOffset += maxBits;
 		}
+
+		currentOffset += mode.getOutputSizeMultiplier() * maxBits;
 
 		bufferOffset = 0;
 	}
@@ -131,22 +119,20 @@ public class DeltaBitPackingValuesReader extends ValuesReader {
 	@Override
 	public int initFromPage(long valueCount, byte[] page, int offset)
 			throws IOException {
-		if (page[offset++] == 1)
+		if (page[offset++] == 1) {
 			mode = MODE.PACK_32;
-		else
-			mode = MODE.PACK_8;
-		// change buffer size depending on the pack mode of the writer.
-		if (mode == MODE.PACK_32) {
-			buffer = new int[BUFFER_SIZE_PACK_32];
 			if (DEBUG)
 				LOG.debug("initializing the reader with PACK_32 mode");
 		} else {
-			buffer = new int[BUFFER_SIZE_PACK_8];
+			mode = MODE.PACK_8;
 			if (DEBUG)
 				LOG.debug("initializing the reader with PACK_8 mode");
 		}
-		bufferSize = buffer.length;
+		// change buffer size depending on the pack mode of the writer.
+		buffer = new int[mode.getBufferSize()];
+
 		// initialize the variables.
+		bufferSize = mode.getBufferSize();
 		currentPage = page;
 		currentOffset = offset;
 		isFirst = true;
@@ -155,15 +141,7 @@ public class DeltaBitPackingValuesReader extends ValuesReader {
 		// skim over the page to find out where it ends. To do this, this loop
 		// quickly reads over the bit widths, and jumps one block at a time
 		while (valueCount > 0) {
-			if (mode == MODE.PACK_32)
-				// this block consists of 1 bitWidth and 4 * bitWidth encoded
-				// values
-				offset += 1 + 4 * page[offset];
-			else
-				// this block consists of 1 bitWidth and bitWidth encoded values
-				offset += 1 + page[offset];
-
-			// decrement to know how many values are remaining
+			offset += 1 + mode.getOutputSizeMultiplier() * page[offset];
 			valueCount -= bufferSize;
 		}
 
@@ -190,8 +168,7 @@ public class DeltaBitPackingValuesReader extends ValuesReader {
 			return nextNumber;
 		} else {
 			// read from the buffer and decode it to obtain a next number
-			nextNumber = lastNumber
-					+ DeltaEncoding.zigzagDecode(buffer[bufferOffset++]);
+			nextNumber = lastNumber + Zigzag.decode(buffer[bufferOffset++]);
 			if (DEBUG)
 				LOG.debug("reading an integer, delta encoding it and writing it to buffer");
 			lastNumber = nextNumber;

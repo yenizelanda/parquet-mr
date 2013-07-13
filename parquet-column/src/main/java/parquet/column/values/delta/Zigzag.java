@@ -21,7 +21,7 @@ package parquet.column.values.delta;
  * @author Baris Kaya
  * 
  */
-public class DeltaEncoding {
+public class Zigzag {
 
 	/**
 	 * The function which encodes the difference between two numbers to a single
@@ -31,7 +31,7 @@ public class DeltaEncoding {
 	 *            the difference between the two integers
 	 * @return the encoded number
 	 */
-	public static int zigzagEncode(int v) {
+	public static int encode(int v) {
 		return (v << 1) ^ (v >> 31);
 	}
 
@@ -43,7 +43,7 @@ public class DeltaEncoding {
 	 *            the encoded number
 	 * @return the difference between two integers
 	 */
-	public static int zigzagDecode(int v) {
+	public static int decode(int v) {
 		return (v >>> 1) ^ (-(v & 1));
 	}
 }

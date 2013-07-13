@@ -31,12 +31,6 @@ public class TestDeltaBitPacking {
 
 		int[] ints = { 1000, 998, 996, 990, 995, 1002, 1004, 999, 997 };
 
-		for (int i = -10; i <= 10; i++)
-			System.out.println(i + " " + DeltaEncoding.zigzagEncode(i));
-
-		for (int i = -10; i <= 10; i++)
-			System.out.println(i + " " + DeltaEncoding.zigzagDecode(i));
-
 		control(ints);
 
 	}
