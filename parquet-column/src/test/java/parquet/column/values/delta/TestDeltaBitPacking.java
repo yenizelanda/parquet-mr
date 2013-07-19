@@ -49,6 +49,22 @@ public class TestDeltaBitPacking {
 
 		control(ints);
 	}
+	
+	@Test
+	public void TestRandomNegativeCloseIntValues() throws IOException {
+		int[] ints = new int[9645];
+
+		int range = 5;
+
+		ints[0] = -2483260;
+
+		for (int i = 1; i < ints.length; i++)
+			ints[i] = ints[i - 1]
+					+ (((int) (Math.random() * (2 * range + 1))) - range);
+
+		control(ints);
+	
+	}
 
 	@Test
 	public void TestLargeVariations() throws IOException {
@@ -85,7 +101,13 @@ public class TestDeltaBitPacking {
 		String got = "";
 		for (int i : ints) {
 			expected += " " + i;
-			got += " " + dvr.readInteger();
+			if (Math.random()>0.5)
+				got += " " + dvr.readInteger();
+			else
+			{
+				dvr.skip();
+				got+= " " + i;
+			}
 		}
 
 		assertEquals(expected, got);

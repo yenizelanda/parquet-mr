@@ -97,7 +97,7 @@ public class DeltaBitPackingValuesReader extends ValuesReader {
 		byte maxBits = currentPage[currentOffset++];
 
 		// get the corresponding packer
-		packer = ByteBitPackingLE.getPacker(maxBits);
+		packer = ByteBitPackingLE.factory.newBytePacker(maxBits);
 
 		if (mode == MODE.PACK_32) {
 			if (DEBUG)
@@ -174,6 +174,16 @@ public class DeltaBitPackingValuesReader extends ValuesReader {
 			lastNumber = nextNumber;
 			return nextNumber;
 		}
+	}
+
+	@Override
+	/**
+	 * There is no faster way to skip the next value. 
+	 * The next value must be read and lastInteger has to be updated for future readInteger calls.
+	 */
+	public void skip() {
+
+		readInteger();
 	}
 
 }

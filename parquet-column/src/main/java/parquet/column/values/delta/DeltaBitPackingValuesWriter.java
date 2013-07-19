@@ -168,7 +168,7 @@ public class DeltaBitPackingValuesWriter extends ValuesWriter {
 		cbaos.write((byte) maxBits);
 
 		// lookup the appropriate packer
-		packer = ByteBitPackingLE.getPacker(maxBits);
+		packer = ByteBitPackingLE.factory.newBytePacker(maxBits);
 
 		if (mode == MODE.PACK_32) {
 			if (DEBUG)
