@@ -55,7 +55,7 @@ public class DictionaryValuesReader extends ValuesReader {
     this.in = new ByteArrayInputStream(page, offset, page.length - offset);
     int bitWidth = BytesUtils.readIntLittleEndianOnOneByte(in);
     if (DEBUG) LOG.debug("bit width " + bitWidth);
-    decoder = new RunLengthBitPackingHybridDecoder(bitWidth, in);
+    decoder = new RunLengthBitPackingHybridDecoder((int)valueCount, bitWidth, in);
     return page.length;
   }
 
@@ -72,6 +72,42 @@ public class DictionaryValuesReader extends ValuesReader {
   public Binary readBytes() {
     try {
       return dictionary.decodeToBinary(decoder.readInt());
+    } catch (IOException e) {
+      throw new ParquetDecodingException(e);
+    }
+  }
+
+  @Override
+  public float readFloat() {
+    try {
+      return dictionary.decodeToFloat(decoder.readInt());
+    } catch (IOException e) {
+      throw new ParquetDecodingException(e);
+    }
+  }
+
+  @Override
+  public double readDouble() {
+    try {
+      return dictionary.decodeToDouble(decoder.readInt());
+    } catch (IOException e) {
+      throw new ParquetDecodingException(e);
+    }
+  }
+
+  @Override
+  public int readInteger() {
+    try {
+      return dictionary.decodeToInt(decoder.readInt());
+    } catch (IOException e) {
+      throw new ParquetDecodingException(e);
+    }
+  }
+
+  @Override
+  public long readLong() {
+    try {
+      return dictionary.decodeToLong(decoder.readInt());
     } catch (IOException e) {
       throw new ParquetDecodingException(e);
     }

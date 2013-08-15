@@ -15,7 +15,7 @@ Parquet is a very active project, and new features are being added quickly; belo
 <table>
   <tr><th>Feature</th><th>In trunk</th><th>In dev</th><th>Planned</th><th>Expected release</th></tr>
   <tr><td>Type-specific encoding</td><td>YES</td><td></td></td><td></td><td>1.0</td></tr>
-  <tr><td>Hive integration</td><td></td><td>YES (<a href ="https://github.com/Parquet/parquet-mr/pull/28">28</a>)</td></td><td></td><td>1.0</td></tr>
+  <tr><td>Hive integration</td><td>YES (<a href ="https://github.com/Parquet/parquet-mr/pull/28">28</a>)</td><td></td></td><td></td><td>1.0</td></tr>
   <tr><td>Pig integration</td><td>YES</td><td></td></td><td></td><td>1.0</td></tr>
   <tr><td>Cascading integration</td><td>YES</td><td></td></td><td></td><td>1.0</td></tr>
   <tr><td>Impala integration</td><td>YES (non-nested)</td><td></td></td><td></td><td>1.0</td></tr>
@@ -27,7 +27,6 @@ Parquet is a very active project, and new features are being added quickly; belo
   <tr><td>RLE</td><td>YES</td><td></td></td><td></td><td>1.0</td></tr>
   <tr><td>Bit Packing</td><td>YES</td><td></td></td><td></td><td>1.0</td></tr>
   <tr><td>Adaptive dictionary encoding</td><td>YES</td><td></td></td><td></td><td>1.0</td></tr>
-  <tr><td>Complex structure support</td><td>YES</td><td></td></td><td></td><td>1.0</td></tr>
   <tr><td>Predicate pushdown</td><td>YES (<a href ="https://github.com/Parquet/parquet-mr/pull/68">68</a>)</td><td></td></td><td></td><td>1.0</td></tr>
   <tr><td>Column stats</td><td></td><td></td></td><td>YES</td><td>2.0</td></tr>  <tr><td>Delta encoding</td><td></td><td></td></td><td>YES</td><td>2.0</td></tr>
   <tr><td>Native Protocol Buffers support</td><td></td><td></td></td><td>YES</td><td>2.0</td></tr>
@@ -75,7 +74,7 @@ If the data was stored using Pig, things will "just work". If the data was store
 
 ## Hive integration
 
-Hive integration is under development in <a href ="https://github.com/Parquet/parquet-mr/pull/28">Issue 28</a> and very close to being merged! Feel free to try out that branch and tell us what you think.
+Hive integration is provided via the [parquet-hive](https://github.com/Parquet/parquet-mr/tree/master/parquet-hive) sub-project.
 
 ## Build
 
@@ -91,6 +90,9 @@ The build runs in [Travis CI](http://travis-ci.org/Parquet/parquet-mr):
 ## Add Parquet as a dependency in Maven
 
 ### Snapshot releases
+* [apis documentation](http://parquet.io/parquet-mr/site/1.0.0-SNAPSHOT/apidocs/index.html)
+* maven dependency:
+
 ```xml
   <repositories>
     <repository>
@@ -107,6 +109,16 @@ The build runs in [Travis CI](http://travis-ci.org/Parquet/parquet-mr):
   <dependencies>
     <dependency>
       <groupId>com.twitter</groupId>
+      <artifactId>parquet-common</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.twitter</groupId>
+      <artifactId>parquet-encoding</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.twitter</groupId>
       <artifactId>parquet-column</artifactId>
       <version>1.0.0-SNAPSHOT</version>
     </dependency>
@@ -119,12 +131,53 @@ The build runs in [Travis CI](http://travis-ci.org/Parquet/parquet-mr):
 ```
 
 ### Official releases
-We haven't published a 1.0.0 yet
+#### 1.0.0
+* [apis documentation](http://parquet.io/parquet-mr/site/1.0.0/apidocs/index.html)
+* maven dependency:
+
+```xml
+  <dependencies>
+    <dependency>
+      <groupId>com.twitter</groupId>
+      <artifactId>parquet-common</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.twitter</groupId>
+      <artifactId>parquet-encoding</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.twitter</groupId>
+      <artifactId>parquet-column</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.twitter</groupId>
+      <artifactId>parquet-hadoop</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+  </dependencies>
+```
+
+### How To Contribute
+
+If you are looking for some ideas on what to contribute, check out GitHub issues for this project labeled ["Pick me up!"](https://github.com/Parquet/parquet-mr/issues?labels=pick+me+up%21&state=open).
+Comment on the issue and/or contact [the parquet-dev group](https://groups.google.com/d/forum/parquet-dev) with your questions and ideas.
+
+We tend to do fairly close readings of pull requests, and you may get a lot of comments. Some common issues that are not code structure related, but still important:
+* Please make sure to add the license headers to all new files. You can do this automatically by using the `mvn license:format` command.
+* Use 2 spaces for whitespace. Not tabs, not 4 spaces. The number of the spacing shall be 2.
+* Give your operators some room. Not `a+b` but `a + b` and not `foo(int a,int b)` but `foo(int a, int b)`.
+* Generally speaking, stick to the [Sun Java Code Conventions](http://www.oracle.com/technetwork/java/javase/documentation/codeconvtoc-136057.html)
+* Make sure tests pass!
 
 ## Authors and contributors
 
 * Julien Le Dem [@J_](http://twitter.com/J_) <https://github.com/julienledem>
 * Tom White <https://github.com/tomwhite>
+* Mickaël Lacour <https://github.com/mickaellcr>
+* Remy Pecqueur <https://github.com/Lordshinjo>
 * Avi Bryant <https://github.com/avibryant>
 * Dmitriy Ryaboy [@squarecog](https://twitter.com/squarecog) <https://github.com/dvryaboy>
 * Jonathan Coveney <http://twitter.com/jco>

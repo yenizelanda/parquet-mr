@@ -235,10 +235,10 @@ class RecordReaderImplementation<T> extends RecordReader<T> {
   private ColumnReader[] columns;
 
   /**
-   *
    * @param root the root of the schema
-   * @param validating
-   * @param columnStore
+   * @param recordMaterializer responsible of materializing the records
+   * @param validating whether we should validate against the schema
+   * @param columnStore where to read the column data from
    */
   public RecordReaderImplementation(MessageColumnIO root, RecordMaterializer<T> recordMaterializer, boolean validating, ColumnReadStoreImpl columnStore) {
     this.recordMaterializer = recordMaterializer;
@@ -380,8 +380,8 @@ class RecordReaderImplementation<T> extends RecordReader<T> {
   @Override
   public T read() {
     int currentLevel = 0;
-    State currentState = states[0];
     recordConsumer.start();
+    State currentState = states[0];
     do {
       ColumnReader columnReader = currentState.column;
       int d = columnReader.getCurrentDefinitionLevel();

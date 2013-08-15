@@ -23,12 +23,11 @@ import parquet.column.ColumnWriteStore;
 import parquet.column.ColumnWriter;
 import parquet.column.impl.ColumnReadStoreImpl;
 import parquet.column.page.PageReadStore;
+import parquet.filter.UnboundRecordFilter;
 import parquet.io.api.Binary;
 import parquet.io.api.RecordConsumer;
 import parquet.io.api.RecordMaterializer;
 import parquet.schema.MessageType;
-import parquet.filter.UnboundRecordFilter;
-import parquet.filter.RecordFilter;
 
 /**
  * Message level of the IO structure
@@ -56,13 +55,18 @@ public class MessageColumnIO extends GroupColumnIO {
   }
 
   public <T> RecordReader<T> getRecordReader(PageReadStore columns, RecordMaterializer<T> recordMaterializer) {
-    return new RecordReaderImplementation<T>(
+    if (leaves.size() > 0) {
+      return new RecordReaderImplementation<T>(
         this,
         recordMaterializer,
         validating,
         new ColumnReadStoreImpl(columns, recordMaterializer.getRootConverter(), getType())
-    );
+      );
+    } else {
+      return new EmptyRecordReader<T>(recordMaterializer);
+    }
   }
+
   public <T> RecordReader<T> getRecordReader(PageReadStore columns, RecordMaterializer<T> recordMaterializer,
                                              UnboundRecordFilter unboundFilter) {
 
@@ -73,7 +77,8 @@ public class MessageColumnIO extends GroupColumnIO {
         recordMaterializer,
         validating,
         new ColumnReadStoreImpl(columns, recordMaterializer.getRootConverter(), getType()),
-        unboundFilter
+        unboundFilter,
+        columns.getRowCount()
     );
   }
 
