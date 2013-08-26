@@ -24,7 +24,6 @@ import parquet.column.page.DictionaryPage;
 import parquet.column.values.ValuesReader;
 import parquet.column.values.bitpacking.ByteBitPackingValuesReader;
 import parquet.column.values.boundedint.ZeroIntegerValuesReader;
-import parquet.column.values.delta.DeltaBitPackingValuesReader;
 import parquet.column.values.delta.DiffBitPackingValuesReader;
 import parquet.column.values.dictionary.DictionaryValuesReader;
 import parquet.column.values.dictionary.PlainValuesDictionary.PlainBinaryDictionary;
