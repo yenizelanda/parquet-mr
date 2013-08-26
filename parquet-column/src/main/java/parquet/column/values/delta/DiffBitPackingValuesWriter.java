@@ -225,7 +225,7 @@ public class DiffBitPackingValuesWriter extends ValuesWriter {
 
 	@Override
 	public Encoding getEncoding() {
-		return Encoding.DELTA;
+		return Encoding.DIFF;
 	}
 
 	@Override
