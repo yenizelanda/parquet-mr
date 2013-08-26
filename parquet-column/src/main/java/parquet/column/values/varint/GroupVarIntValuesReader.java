@@ -22,8 +22,7 @@ import parquet.bytes.BytesUtils;
 import parquet.column.values.ValuesReader;
 
 /**
- * This class first encodes numbers with zigzag encoding to make them positive,
- * then uses group varint for a variable length integer encoding.
+ * This class decodes the page using group varint method.
  * @author Baris Kaya
  *
  */

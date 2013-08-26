@@ -1,5 +1,10 @@
 package parquet.column.values.varint;
 
+/**
+ * Helper class for group varint encoding. Provides zigzag functions and lookup tables.
+ * @author Baris Kaya
+ */
+
 public class VarIntHelper {
 
 	/**

@@ -23,6 +23,11 @@ import parquet.bytes.CapacityByteArrayOutputStream;
 import parquet.column.Encoding;
 import parquet.column.values.ValuesWriter;
 
+/**
+ * This class first encodes numbers with zigzag encoding to make them positive,
+ * then uses group varint for a variable length integer encoding.
+ * @author Baris Kaya
+ */
 public class GroupVarIntValuesWriter extends ValuesWriter {
 
 	public final CapacityByteArrayOutputStream cbaos;
