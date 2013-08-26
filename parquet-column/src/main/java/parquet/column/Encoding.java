@@ -37,6 +37,7 @@ import parquet.column.values.plain.PlainValuesReader.FloatPlainValuesReader;
 import parquet.column.values.plain.PlainValuesReader.IntegerPlainValuesReader;
 import parquet.column.values.plain.PlainValuesReader.LongPlainValuesReader;
 import parquet.column.values.rle.RunLengthBitPackingHybridValuesReader;
+import parquet.column.values.varint.GroupVarIntValuesReader;
 import parquet.io.ParquetDecodingException;
 
 /**
@@ -84,6 +85,14 @@ public enum Encoding {
     }
   },
 
+  GROUP_VAR_INT {
+		@Override
+		public ValuesReader getValuesReader(ColumnDescriptor descriptor,
+				ValuesType valuesType) {
+			return new GroupVarIntValuesReader();
+		}
+	  },
+
   /**
    * This is no longer used, and has been replaced by {@link #RLE}
    * which is combination of bit packing and rle
@@ -96,12 +105,6 @@ public enum Encoding {
     }
   },
 
-  GROUP_VAR_INT {
-    @Override // TODO: GROUP VAR INT encoding
-    public ValuesReader getValuesReader(ColumnDescriptor descriptor, ValuesType valuesType) {
-      throw new UnsupportedOperationException("NYI");
-    }
-  },
 
   PLAIN_DICTIONARY {
     @Override
