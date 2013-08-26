@@ -24,7 +24,7 @@ import parquet.bytes.BytesUtils;
 import parquet.column.values.ValuesReader;
 import parquet.column.values.bitpacking.ByteBitPackingLE;
 import parquet.column.values.bitpacking.BytePacker;
-import parquet.column.values.delta.DeltaBitPackingValuesWriter.MODE;
+import parquet.column.values.delta.DiffBitPackingValuesWriter.MODE;
 
 /**
  * This class uses delta encoding combined with bit packing to increase the
@@ -81,6 +81,14 @@ public class DiffBitPackingValuesReader extends ValuesReader {
 	 * Holds the current mode of the writer.
 	 */
 	private MODE mode;
+	
+	/**
+	 * The enum for modes, helps to tell the writer if values are packed 8 at a
+	 * time or 32 at a time.
+	 * 
+	 * @author Baris Kaya
+	 * 
+	 */
 
 	public DiffBitPackingValuesReader() {
 

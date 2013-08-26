@@ -90,16 +90,9 @@ public enum Encoding {
 	@Override
 	public ValuesReader getValuesReader(ColumnDescriptor descriptor,
 			ValuesType valuesType) {
-		return new DeltaBitPackingValuesReader();
+		return new DiffBitPackingValuesReader();
 	}
-  },  
-  DIFF {
-		@Override
-		public ValuesReader getValuesReader(ColumnDescriptor descriptor,
-				ValuesType valuesType) {
-			return new DiffBitPackingValuesReader();
-		}
-	  },
+  },
 
   /**
    * This is no longer used, and has been replaced by {@link #RLE}

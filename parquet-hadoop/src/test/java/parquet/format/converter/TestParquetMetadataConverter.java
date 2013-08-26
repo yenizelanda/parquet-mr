@@ -61,25 +61,35 @@ public class TestParquetMetadataConverter {
 
   @Test
   public void testEnumEquivalence() {
+	    System.out.println("yo");
     ParquetMetadataConverter c = new ParquetMetadataConverter();
+    System.out.println("yo");
     for (Encoding encoding : Encoding.values()) {
+        System.out.println(encoding.toString());
+        System.out.println(c.getEncoding(c.getEncoding(encoding)).toString());
       assertEquals(encoding, c.getEncoding(c.getEncoding(encoding)));
     }
+    System.out.println("yo");
     for (parquet.format.Encoding encoding : parquet.format.Encoding.values()) {
       assertEquals(encoding, c.getEncoding(c.getEncoding(encoding)));
     }
+    System.out.println("yo");
     for (Repetition repetition : Repetition.values()) {
       assertEquals(repetition, c.fromParquetRepetition(c.toParquetRepetition(repetition)));
     }
+    System.out.println("yo");
     for (FieldRepetitionType repetition : FieldRepetitionType.values()) {
       assertEquals(repetition, c.toParquetRepetition(c.fromParquetRepetition(repetition)));
     }
+    System.out.println("yo");
     for (PrimitiveTypeName primitiveTypeName : PrimitiveTypeName.values()) {
       assertEquals(primitiveTypeName, c.getPrimitive(c.getType(primitiveTypeName)));
     }
+    System.out.println("yo");
     for (Type type : Type.values()) {
       assertEquals(type, c.getType(c.getPrimitive(type)));
     }
+    System.out.println("yo");
   }
 
 }
