@@ -10,11 +10,11 @@ class VarIntHelper {
 	/**
 	 * the lookup table which holds how many bytes is the next block of 4 numbers depending on firstByte
 	 */
-	public static int[] totalLength = new int[256];
+	static int[] totalLength = new int[256];
 	/**
 	 * the lookup table which gives the specific length of the specific number, depending on firstByte
 	 */
-	public static int[][] length = new int[256][4];
+	static int[][] length = new int[256][4];
 	static
 	{
 		for (int i = 0; i < 256; i++) {
