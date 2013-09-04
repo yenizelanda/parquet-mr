@@ -5,7 +5,7 @@ package parquet.column.values.varint;
  * @author Baris Kaya
  */
 
-public class VarIntHelper {
+class VarIntHelper {
 
 	/**
 	 * the lookup table which holds how many bytes is the next block of 4 numbers depending on firstByte
@@ -15,6 +15,7 @@ public class VarIntHelper {
 	 * the lookup table which gives the specific length of the specific number, depending on firstByte
 	 */
 	public static int[][] length = new int[256][4];
+	static
 	{
 		for (int i = 0; i < 256; i++) {
 			totalLength[i] = 0;
@@ -26,26 +27,24 @@ public class VarIntHelper {
 	};
 	
 	/**
-	 * The function which encodes the difference between two numbers to a single
-	 * positive integer.
+	 * The function which encodes a signed integer to an unsigned positive integer.
 	 * 
 	 * @param v
 	 *            the difference between the two integers
 	 * @return the encoded number
 	 */
-	public static int encode(int v) {
+	public static int zigzagEncode(int v) {
 		return (v << 1) ^ (v >> 31);
 	}
 
 	/**
-	 * The function which decodes the difference between two numbers back to its
-	 * original states.
+	 * The function which decodes back a signed integer from an unsigned positive integer.
 	 * 
 	 * @param v
 	 *            the encoded number
 	 * @return the difference between two integers
 	 */
-	public static int decode(int v) {
+	public static int zigzagDecode(int v) {
 		return (v >>> 1) ^ (-(v & 1));
 	}
 

@@ -66,7 +66,7 @@ public class GroupVarIntValuesReader extends ValuesReader{
 		int retVal = 0;
 		try {
 			//get the next number with a number of bytes from the input stream. the number of bytes to read is encoded in firstbyte.
-			retVal = VarIntHelper.decode(BytesUtils.readIntLittleEndianPaddedOnBitWidth(in, 8 * VarIntHelper.length[firstByte][readOffset++]));
+			retVal = VarIntHelper.zigzagDecode(BytesUtils.readIntLittleEndianPaddedOnBitWidth(in, 8 * VarIntHelper.length[firstByte][readOffset++]));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

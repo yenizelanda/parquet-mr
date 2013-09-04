@@ -71,7 +71,7 @@ public class GroupVarIntValuesWriter extends ValuesWriter {
 	}
 
 	public void writeInteger(int v) {
-		buffer[bufferOffset++] = VarIntHelper.encode(v);
+		buffer[bufferOffset++] = VarIntHelper.zigzagEncode(v);
 		
 		if (bufferOffset == 4)
 			writeToOutputStream();
